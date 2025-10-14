@@ -1,22 +1,27 @@
 "use strict";
+const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
-  const Genre = sequelize.define(
-    "Genre",
+  class Genre extends Model {
+    static associate(models) {
+      Genre.belongsTo(models.Game, { foreignKey: "game_id", as: "game" });
+    }
+  }
+
+  Genre.init(
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       name: DataTypes.STRING,
       game_id: DataTypes.INTEGER,
     },
     {
+      sequelize,
+      modelName: "Genre",
       tableName: "genres",
       underscored: true,
       timestamps: true,
     }
   );
-
-  Genre.associate = (models) => {
-    Genre.belongsTo(models.Game, { foreignKey: "game_id", as: "game" });
-  };
 
   return Genre;
 };

@@ -1,7 +1,24 @@
 "use strict";
+const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
-  const Game = sequelize.define(
-    "Game",
+  class Game extends Model {
+    static associate(models) {
+      Game.hasMany(models.Media, { foreignKey: "game_id", as: "medias" });
+      Game.hasMany(models.Genre, { foreignKey: "game_id", as: "genres" });
+      Game.hasMany(models.Theme, { foreignKey: "game_id", as: "themes" });
+      Game.hasMany(models.UserFavourite, {
+        foreignKey: "game_id",
+        as: "favourited_by",
+      });
+      Game.hasMany(models.UserRecommendation, {
+        foreignKey: "game_id",
+        as: "recommendations",
+      });
+    }
+  }
+
+  Game.init(
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       igdb_id: { type: DataTypes.INTEGER, unique: true },
@@ -13,17 +30,13 @@ module.exports = (sequelize, DataTypes) => {
       description: DataTypes.TEXT,
     },
     {
+      sequelize,
+      modelName: "Game",
       tableName: "games",
       underscored: true,
       timestamps: true,
     }
   );
-
-  Game.associate = (models) => {
-    Game.hasMany(models.Media, { foreignKey: "game_id", as: "medias" });
-    Game.hasMany(models.Genre, { foreignKey: "game_id", as: "genres" });
-    Game.hasMany(models.Theme, { foreignKey: "game_id", as: "themes" });
-  };
 
   return Game;
 };

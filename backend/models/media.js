@@ -1,7 +1,14 @@
 "use strict";
+const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
-  const Media = sequelize.define(
-    "Media",
+  class Media extends Model {
+    static associate(models) {
+      Media.belongsTo(models.Game, { foreignKey: "game_id", as: "game" });
+    }
+  }
+
+  Media.init(
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       name: DataTypes.STRING,
@@ -9,15 +16,13 @@ module.exports = (sequelize, DataTypes) => {
       game_id: DataTypes.INTEGER,
     },
     {
+      sequelize,
+      modelName: "Media",
       tableName: "medias",
       underscored: true,
       timestamps: true,
     }
   );
-
-  Media.associate = (models) => {
-    Media.belongsTo(models.Game, { foreignKey: "game_id", as: "game" });
-  };
 
   return Media;
 };
