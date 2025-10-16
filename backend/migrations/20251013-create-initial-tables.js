@@ -25,9 +25,8 @@ module.exports = {
 
     await queryInterface.createTable("games", {
       id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-      igdb_id: { type: Sequelize.INTEGER, unique: true },
       name: { type: Sequelize.STRING, allowNull: false },
-      ratingIGDB: { type: Sequelize.INTEGER },
+      rating_RAWG: { type: Sequelize.INTEGER },
       is_available: { type: Sequelize.BOOLEAN, defaultValue: false },
       release_date: { type: Sequelize.DATE },
       publisher: { type: Sequelize.STRING },
@@ -58,6 +57,11 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.fn("now"),
       },
+      updated_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.fn("now"),
+      },
     });
 
     await queryInterface.createTable("genres", {
@@ -68,6 +72,16 @@ module.exports = {
         references: { model: "games", key: "id" },
         onDelete: "CASCADE",
       },
+      created_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.fn("now"),
+      },
+      updated_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.fn("now"),
+      },
     });
 
     await queryInterface.createTable("themes", {
@@ -77,6 +91,16 @@ module.exports = {
         type: Sequelize.INTEGER,
         references: { model: "games", key: "id" },
         onDelete: "CASCADE",
+      },
+      created_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.fn("now"),
+      },
+      updated_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.fn("now"),
       },
     });
 
@@ -92,12 +116,12 @@ module.exports = {
         references: { model: "games", key: "id" },
         onDelete: "CASCADE",
       },
-      user_id: {
-        type: Sequelize.INTEGER,
-        references: { model: "users", key: "id" },
-        onDelete: "CASCADE",
-      },
       created_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.fn("now"),
+      },
+      updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.fn("now"),
@@ -122,6 +146,11 @@ module.exports = {
         onDelete: "CASCADE",
       },
       created_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.fn("now"),
+      },
+      updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.fn("now"),
