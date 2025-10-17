@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+const API_URL = "https://game.fawwazerweb.site";
+
 export default function RecomendGemini() {
   const [genres, setGenres] = useState([]);
   const [genreId, setGenreId] = useState(null);
@@ -11,70 +13,70 @@ export default function RecomendGemini() {
   useEffect(() => {
     let mounted = true;
     axios
-      .get("http://localhost:3000/genres")
+      .get(`${API_URL}/genres`)
       .then((r) => {
         if (!mounted) return;
         setGenres(r.data || []);
         if ((r.data || []).length > 0) setGenreId(r.data[0].id);
       })
-      .catch(() => {
+      .catch((err) => {
         if (!mounted) return;
+        console.error("Failed to load genres:", err);
         setError("Failed to load genres");
       });
     return () => (mounted = false);
   }, []);
 
   async function fetchRecommendations() {
+    if (!genreId) return;
+
     try {
       setLoading(true);
       setError(null);
       setRecs([]);
-      const url = genreId
-        ? `http://localhost:3000/games/recommendations/${genreId}`
-        : `http://localhost:3000/games/recommendations`;
-      const resp = await axios.post(url, { top: 5 });
-      // the backend may return { recommendations: [...] } or { results: [...] }
+
+      const resp = await axios.post(
+        `${API_URL}/games/recommendations/${genreId}`,
+        { top: 5 }
+      );
+
       const data = resp.data || {};
-      const items = data.recommendations || data.results || data.rawg || [];
-      // normalize items to { name, rawg_id, reason }
-      const normalized = (items || []).slice(0, 5).map((it) => {
-        if (it && it.name)
-          return {
-            name: it.name,
-            rawg_id: it.rawg_id || it.id || null,
-            reason: it.reason || it.excerpt || null,
-          };
-        // fallback if backend returned rawg objects
-        return {
+      const items =
+        data.recommendations || data.results || data.data?.results || [];
+
+      // Normalize items to { name, rawg_id, reason }
+      const normalized = (Array.isArray(items) ? items : [])
+        .slice(0, 5)
+        .map((it) => ({
           name: it.name || it.title || "Unknown",
-          rawg_id: it.id || null,
-          reason: it.description || null,
-        };
-      });
+          rawg_id: it.rawg_id || it.id || null,
+          reason:
+            it.reason ||
+            it.excerpt ||
+            it.description?.substring(0, 100) ||
+            null,
+        }));
+
       setRecs(normalized);
     } catch (err) {
-      console.error(err);
-      setError(err.message || "Recommendation failed");
+      console.error("Recommendation error:", err);
+      setError(
+        err.response?.data?.error || err.message || "Recommendation failed"
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={{ padding: 12 }}>
-      <div
-        style={{
-          marginBottom: 8,
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-        }}
-      >
-        <label style={{ fontSize: 14 }}>Genre:</label>
+    <div className="gemini-panel">
+      <h4>🎮 AI Game Recommendations (Powered by Gemini)</h4>
+
+      <div className="gemini-controls">
+        <label>Select Genre:</label>
         <select
           value={genreId != null ? String(genreId) : ""}
           onChange={(e) => setGenreId(Number(e.target.value))}
-          style={{ cursor: "pointer" }}
         >
           {genres.map((g) => (
             <option key={g.id} value={String(g.id)}>
@@ -83,40 +85,36 @@ export default function RecomendGemini() {
           ))}
         </select>
         <button onClick={fetchRecommendations} disabled={loading || !genreId}>
-          {loading ? "Loading..." : "Get Recommendations"}
+          {loading ? "🔄 Loading..." : "✨ Get Recommendations"}
         </button>
       </div>
 
-      {error && (
-        <div style={{ color: "crimson", marginBottom: 8 }}>{error}</div>
+      {error && <div className="error-text">{error}</div>}
+
+      {recs.length === 0 && !error && !loading && (
+        <div
+          style={{
+            color: "var(--text-secondary)",
+            textAlign: "center",
+            padding: "20px",
+          }}
+        >
+          No recommendations yet. Choose a genre and click Get Recommendations.
+        </div>
       )}
 
-      <div
-        style={{
-          border: "1px solid #ddd",
-          padding: 12,
-          borderRadius: 6,
-          background: "#fff",
-        }}
-      >
-        <h4 style={{ marginTop: 0 }}>Gemini Recommendations</h4>
-        {recs.length === 0 && (
-          <div style={{ color: "#666" }}>
-            No recommendations yet. Choose a genre and click Get
-            Recommendations.
-          </div>
-        )}
-        <ol>
+      {recs.length > 0 && (
+        <ol className="recommendation-list">
           {recs.map((r, i) => (
-            <li key={i} style={{ marginBottom: 8 }}>
-              <div style={{ fontWeight: 600 }}>{r.name}</div>
+            <li key={i} className="recommendation-item">
+              <div className="recommendation-name">{r.name}</div>
               {r.reason && (
-                <div style={{ color: "#555", fontSize: 13 }}>{r.reason}</div>
+                <div className="recommendation-reason">{r.reason}</div>
               )}
             </li>
           ))}
         </ol>
-      </div>
+      )}
     </div>
   );
 }

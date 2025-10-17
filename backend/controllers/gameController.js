@@ -272,7 +272,13 @@ class GameController {
               id: f.game.id,
               name: f.game.name,
               released: f.game.released,
-              background_image: f.game.background_image,
+              // expose a consistent imageUrl property (use stored imageUrl if present,
+              // otherwise fall back to other common fields)
+              imageUrl:
+                f.game.imageUrl ||
+                f.game.background_image ||
+                f.game.image_url ||
+                null,
               rating: f.game.rating,
             }
           : null,
@@ -287,7 +293,9 @@ class GameController {
   static async removeUserFavourite(req, res, next) {
     try {
       const routeGameId = req.params.gameId;
-      const userId = req.body.user_id || req.query.user_id;
+      // Prefer authenticated user id (if auth middleware set req.user), fall back to body/query
+      const userId =
+        (req.user && req.user.id) || req.body.user_id || req.query.user_id;
       if (!userId) return res.status(400).json({ error: "user_id required" });
       if (!routeGameId)
         return res.status(400).json({ error: "gameId required in URL" });
