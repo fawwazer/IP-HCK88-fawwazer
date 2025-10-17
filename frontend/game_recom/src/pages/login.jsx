@@ -26,9 +26,13 @@ export default function Login() {
     setError(null);
     setLoading(true);
     try {
-      const { data } = await axios.post("http://localhost:3000/login", form);
+      const { data } = await axios.post(
+        "https://game.fawwazerweb.site/login",
+        form
+      );
       // backend expected shape: { token }
-      const token = data.token || data.Authorization || data.auth;
+      const token =
+        data.token || data.Authorization || data.auth || data.access_token;
       if (token) {
         localStorage.setItem("token", token);
         navigate("/");
@@ -58,14 +62,14 @@ export default function Login() {
         form.email.split("@")[0] + Math.floor(Math.random() * 9000 + 1000);
       const password = Math.random().toString(36).slice(-10);
 
-      await axios.post("http://localhost:3000/register", {
+      await axios.post("https://game.fawwazerweb.site/register", {
         username,
         email: form.email,
         password,
       });
 
       // login right away
-      const { data } = await axios.post("http://localhost:3000/login", {
+      const { data } = await axios.post("https://game.fawwazerweb.site/login", {
         email: form.email,
         password,
       });
@@ -98,7 +102,7 @@ export default function Login() {
           googleData?.credential || googleData?.tokenId || googleData;
         // backend expects `id_token` in the request body
         const { data } = await axios.post(
-          "http://localhost:3000/google-login",
+          "https://game.fawwazerweb.site/google-login",
           {
             id_token: tokenId,
           }

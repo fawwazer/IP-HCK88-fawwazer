@@ -16,10 +16,10 @@ export default function Register() {
     setError(null);
     setLoading(true);
     try {
-      await axios.post("http://localhost:3000/register", form, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+      await axios.post("https://game.fawwazerweb.site/register", {
+        username: form.name,
+        email: form.email,
+        password: form.password,
       });
       setLoading(false);
       navigate("/login");

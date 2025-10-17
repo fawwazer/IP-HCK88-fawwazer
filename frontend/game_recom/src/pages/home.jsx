@@ -3,22 +3,26 @@ import Card from "../components/card";
 import RecomendGemini from "../components/recomendGemini";
 import axios from "axios";
 
+const API_URL = "https://game.fawwazerweb.site";
+
 export default function Home() {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [search, setSearch] = useState("");
   const pageSize = 40;
-  const [page, setPage] = useState(1); // 1..10
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     let mounted = true;
     setLoading(true);
     setError(null);
 
+    const params = { page_size: pageSize, page };
+    if (search) params.search = search;
+
     axios
-      .get("http://localhost:3000/games", {
-        params: { page_size: pageSize, page },
-      })
+      .get(`${API_URL}/games`, { params })
       .then((response) => {
         if (!mounted) return;
         setGames(
@@ -28,7 +32,7 @@ export default function Home() {
       .catch((err) => {
         console.error("Error fetching games:", err);
         if (!mounted) return;
-        setError(err.message || String(err));
+        setError(err.response?.data?.error || err.message || String(err));
       })
       .finally(() => {
         if (mounted) setLoading(false);
@@ -37,63 +41,93 @@ export default function Home() {
     return () => {
       mounted = false;
     };
-  }, [page]);
+  }, [page, search]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setPage(1); // Reset to first page on new search
+  };
 
   return (
-    <>
-      <div style={{ padding: 16 }}>
-        {loading && (
-          <div style={{ textAlign: "center", marginBottom: 8 }}>Loading...</div>
-        )}
-        {error && (
-          <div
-            style={{ textAlign: "center", color: "crimson", marginBottom: 8 }}
-          >
-            Error: {error}. Is the backend running?
-          </div>
-        )}
-
-        <RecomendGemini />
-
-        <div
-          className="games-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))",
-            gap: 16,
-          }}
-        >
-          {games.map((game) => (
-            <Card key={game.id} game={game} />
-          ))}
-        </div>
-      </div>
-
+    <div style={{ minHeight: "100vh" }}>
+      {/* Search Bar */}
       <div
         style={{
-          textAlign: "center",
-          marginTop: 12,
-          display: "flex",
-          justifyContent: "center",
-          gap: 8,
+          padding: "20px",
+          background: "var(--bg-card)",
+          borderBottom: "1px solid var(--border-color)",
         }}
       >
+        <form
+          onSubmit={handleSearch}
+          style={{
+            maxWidth: "600px",
+            margin: "0 auto",
+            display: "flex",
+            gap: "12px",
+          }}
+        >
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search games..."
+            style={{ flex: 1 }}
+          />
+          <button type="submit">🔍 Search</button>
+          {search && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch("");
+                setPage(1);
+              }}
+              style={{ background: "var(--text-secondary)" }}
+            >
+              Clear
+            </button>
+          )}
+        </form>
+      </div>
+
+      {loading && <div className="loading-text">⏳ Loading games...</div>}
+
+      {error && <div className="error-text">❌ Error: {error}</div>}
+
+      <RecomendGemini />
+
+      <div className="games-grid">
+        {games.map((game) => (
+          <Card key={game.id} game={game} />
+        ))}
+      </div>
+
+      {games.length === 0 && !loading && !error && (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "40px",
+            color: "var(--text-secondary)",
+          }}
+        >
+          No games found. Try a different search term.
+        </div>
+      )}
+
+      <div className="pagination">
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page <= 1 || loading}
         >
-          Previous
+          ← Previous
         </button>
 
-        <div style={{ alignSelf: "center" }}>Page {page}</div>
+        <div className="page-info">Page {page}</div>
 
-        <button
-          onClick={() => setPage((p) => Math.min(10, p + 1))}
-          disabled={page >= 10 || loading}
-        >
-          Next
+        <button onClick={() => setPage((p) => p + 1)} disabled={loading}>
+          Next →
         </button>
       </div>
-    </>
+    </div>
   );
 }
