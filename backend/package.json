@@ -10,7 +10,9 @@
     "test:rawg": "node scripts/test-rawg.js",
     "test:gemini": "node scripts/test-gemini.js",
     "recommend:rawg-gemini": "node scripts/recommend-rawg-gemini.js",
-    "test": "jest --detectOpenHandles --verbose"
+    "test": "jest --detectOpenHandles --verbose",
+    "test:coverage": "jest --coverage --detectOpenHandles --verbose",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "@google/genai": "^1.25.0",
